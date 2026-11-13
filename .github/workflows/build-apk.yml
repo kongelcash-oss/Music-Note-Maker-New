@@ -27,13 +27,19 @@ jobs:
       - name: Extract Android Project
         run: |
           mkdir -p project
-          unzip -q MusicNoteMaker.zip -d project
+          ZIP_FILE=$(find . -type f -iname '*.zip' -not -path './.git/*' | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERROR: ZIP file not found"
+            exit 1
+          fi
+          echo "Using ZIP: $ZIP_FILE"
+          unzip -q "$ZIP_FILE" -d project
 
       - name: Build APK
         run: |
           WRAPPER=$(find project -type f -name gradlew -print -quit)
           if [ -z "$WRAPPER" ]; then
-            echo "gradlew not found"
+            echo "ERROR: gradlew not found"
             exit 1
           fi
           PROJECT_DIR=$(dirname "$WRAPPER")
@@ -41,8 +47,25 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug
 
+      - name: Verify APK
+        run: |
+          APK=$(find project -type f -path '*/build/outputs/apk/debug/*.apk' -print -quit)
+          if [ -z "$APK" ]; then
+            echo "ERROR: APK not generated"
+            exit 1
+          fi
+          SIZE=$(stat -c%s "$APK")
+          echo "APK size: $SIZE bytes"
+          if [ "$SIZE" -lt 100000 ]; then
+            echo "ERROR: APK is too small"
+            exit 1
+          fi
+          mkdir -p output
+          cp "$APK" output/app-debug.apk
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Music-Note-Maker-APK
-          path: project/**/app/build/outputs/apk/debug/*.apk
+          path: output/app-debug.apk
+          if-no-files-found: error
