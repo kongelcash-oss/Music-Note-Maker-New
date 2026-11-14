@@ -27,13 +27,9 @@ jobs:
       - name: Extract Android Project
         run: |
           mkdir -p project
-          ZIP_FILE=$(find . -type f -iname '*.zip' -not -path './.git/*' | head -n 1)
-          if [ -z "$ZIP_FILE" ]; then
-            echo "ERROR: ZIP file not found"
-            exit 1
-          fi
-          echo "Using ZIP: $ZIP_FILE"
-          unzip -q "$ZIP_FILE" -d project
+          unzip -q "MusicNoteMaker_Android_Project(3).zip" -d project
+          echo "Extract completed"
+          find project -type f -name gradlew -print
 
       - name: Build APK
         run: |
