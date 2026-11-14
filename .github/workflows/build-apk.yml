@@ -27,7 +27,7 @@ jobs:
       - name: Extract Android Project
         run: |
           mkdir -p project
-          unzip -q "MusicNoteMaker_Android_Project(3).zip" -d project
+          unzip -q "MusicNoteMaker.zip" -d project
           echo "Extract completed"
           find project -type f -name gradlew -print
 
